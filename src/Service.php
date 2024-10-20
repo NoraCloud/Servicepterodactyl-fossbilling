@@ -72,11 +72,55 @@ class Service
      */
     public function install(): bool
     {
-        // Execute SQL script if needed
-        $db = $this->di['db'];
-        $db->exec('SELECT NOW()');
 
-        // throw new InformationException("Throw exception to terminate module installation process with a message", array(), 123);
+        $sql = "
+        CREATE TABLE IF NOT EXISTS `service_pterodactyl_panel` (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `name` varchar(255) DEFAULT NULL,
+            `url` varchar(255) DEFAULT NULL,
+            `api_key` varchar(255) DEFAULT NULL,
+            `active` bigint(20) DEFAULT NULL,
+            `created_at` varchar(35) DEFAULT NULL,
+            `updated_at` varchar(35) DEFAULT NULL,
+            PRIMARY KEY (`id`)
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
+        $this->di['db']->exec($sql);
+
+        $sql = "
+        CREATE TABLE IF NOT EXISTS `service_pterodactyl_node` (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `name` varchar(255) DEFAULT NULL,
+            `location` varchar(255) DEFAULT NULL,
+            `ipv4` varchar(255) DEFAULT NULL,
+            `hostname` varchar(255) DEFAULT NULL,
+            `config` text,
+            `active` bigint(20) DEFAULT NULL,
+            `created_at` varchar(35) DEFAULT NULL,
+            `updated_at` varchar(35) DEFAULT NULL,
+            PRIMARY KEY (`id`)
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
+        $this->di['db']->exec($sql);
+
+        $sql = "
+        CREATE TABLE IF NOT EXISTS `service_pterodactyl` (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `client_id` bigint(20) DEFAULT NULL,
+            `order_id` bigint(20) DEFAULT NULL,
+            `node_id` bigint(20) DEFAULT NULL,
+            `server_uuid` varchar(255) DEFAULT NULL,
+            `ipv4` varchar(255) DEFAULT NULL,
+            `allocations` text,
+            `hostname` varchar(255) DEFAULT NULL,
+            `password` varchar(255) DEFAULT NULL,
+            `config` text,
+            `created_at` varchar(35) DEFAULT NULL,
+            `updated_at` varchar(35) DEFAULT NULL,
+            PRIMARY KEY (`id`),
+            FOREIGN KEY (`client_id`) REFERENCES `client` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+            FOREIGN KEY (`node_id`) REFERENCES `service_pterodactyl_node` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
+        $this->di['db']->exec($sql);
+
         return true;
     }
 
@@ -93,7 +137,8 @@ class Service
      */
     public function uninstall(): bool
     {
-        // throw new InformationException("Throw exception to terminate module uninstallation process with a message", array(), 124);
+        $this->di['db']->exec('DROP TABLE IF EXISTS `service_pterodactyl_node`');
+        $this->di['db']->exec('DROP TABLE IF EXISTS `service_proxmox`');
         return true;
     }
 
@@ -110,7 +155,7 @@ class Service
      */
     public function update(array $manifest): bool
     {
-        // throw new InformationException("Throw exception to terminate module update process with a message", array(), 125);
+        throw new InformationException("Throw exception to terminate module update process with a message", array(), 125);
         return true;
     }
 
@@ -155,130 +200,4 @@ class Service
         return $row;
     }
 
-    /**
-     * Example event hook. Any module can hook to any FOSSBilling event and perform actions.
-     *
-     * Make sure extension is enabled before testing this event.
-     *
-     * NOTE: IF you have DEBUG mode set to TRUE then all events with params
-     * are logged to data/log/hook_*.log file. Check this file to see what
-     * kind of parameters are passed to event.
-     *
-     * In this example we are going to count how many times client failed
-     * to enter correct login details
-     *
-     * @return void
-     *
-     * @throws InformationException
-     */
-    public static function onEventClientLoginFailed(\Box_Event $event): void
-    {
-        // getting Dependency Injector
-        $di = $event->getDi();
-
-        // @note almost in all cases you will need Admin API
-        $api = $di['api_admin'];
-
-        // sometimes you may need guest API
-        // $api_guest = $di['api_guest'];
-
-        $params = $event->getParameters();
-
-        // @note To debug parameters by throwing an exception
-        // throw new Exception(print_r($params, 1));
-
-        // Use RedBean ORM in any place of FOSSBilling where API call is not enough
-        // First we need to find if we already have a counter for this IP
-        // We will use extension_meta table to store this data.
-        $values = [
-            'ext' => 'servicepterodactyl',
-            'rel_type' => 'ip',
-            'rel_id' => $params['ip'],
-            'meta_key' => 'counter',
-        ];
-        $meta = $di['db']->findOne('extension_meta', 'extension = :ext AND rel_type = :rel_type AND rel_id = :rel_id AND meta_key = :meta_key', $values);
-        if (!$meta) {
-            $meta = $di['db']->dispense('extension_meta');
-            // $count->client_id = null; // client id is not known in this situation
-            $meta->extension = 'mod_servicepterodactyl';
-            $meta->rel_type = 'ip';
-            $meta->rel_id = $params['ip'];
-            $meta->meta_key = 'counter';
-            $meta->created_at = date('Y-m-d H:i:s');
-        }
-        $meta->meta_value = $meta->meta_value + 1;
-        $meta->updated_at = date('Y-m-d H:i:s');
-        $di['db']->store($meta);
-
-        // Now we can perform task depending on how many times wrong details were entered
-
-        // We can log event if it repeats for 2 time
-        if ($meta->meta_value > 2) {
-            $api->activity_log(['m' => 'Client failed to enter correct login details ' . $meta->meta_value . ' time(s)']);
-        }
-
-        // if client gets funky, we block him
-        if ($meta->meta_value > 30) {
-            throw new InformationException('You have failed to login too many times. Contact support.');
-        }
-    }
-
-    /**
-     * This event hook is registered in example module client API call.
-     */
-    public static function onAfterClientCalledExampleModule(\Box_Event $event): void
-    {
-        // error_log('Called event from example module');
-
-        $di = $event->getDi();
-        $params = $event->getParameters();
-
-        $meta = $di['db']->dispense('extension_meta');
-        $meta->extension = 'mod_servicepterodactyl';
-        $meta->meta_key = 'event_params';
-        $meta->meta_value = json_encode($params);
-        $meta->created_at = date('Y-m-d H:i:s');
-        $meta->updated_at = date('Y-m-d H:i:s');
-        $di['db']->store($meta);
-    }
-
-    /**
-     * Example event hook for public ticket and set event return value.
-     */
-    public static function onBeforeGuestPublicTicketOpen(\Box_Event $event)
-    {
-        /* Uncomment lines below in order to see this function in action */
-
-        /*
-        $data            = $event->getParameters();
-        $data['status']  = 'closed';
-        $data['subject'] = 'Altered subject';
-        $data['message'] = 'Altered text';
-        $event->setReturnValue($data);
-        */
-    }
-
-    /**
-     * Example email sending.
-     */
-    public static function onAfterClientOrderCreate(\Box_Event $event)
-    {
-        /* Uncomment lines below in order to see this function in action */
-
-        /*
-         $di = $event->getDi();
-         $api    = $di['api_admin'];
-         $params = $event->getParameters();
-
-         $email = array();
-         $email['to_client'] = $params['client_id'];
-         $email['code']      = 'mod_example_email'; //@see modules/Example/html_email/mod_example_email.html.twig
-
-         // these parameters are available in email template
-         $email['order']     = $api->order_get(array('id'=>$params['id']));
-         $email['other']     = 'any other value';
-
-         $api->email_template_send($email);
-        */
-    }
 }

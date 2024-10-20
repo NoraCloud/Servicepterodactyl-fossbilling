@@ -67,29 +67,101 @@ class Admin extends \Api_Abstract
         return true;
     }
 
+    /**
+     * Method to list all pterodactyl servers
+     * @return array
+     */
+    public function server_list(): array
+    {
+        $servers = $this->di['db']->find('service_pterodactyl_node');
+        $result = [];
+        foreach ($servers as $server) {
+            $result[] = [
+                'id' => $server->id,
+                'name' => $server->name,
+                'location' => $server->location,
+                'hostname' => $server->hostname,
+                'ipv4' => $server->ipv4,
+                'active' => $server->active,
+            ];
+        }
+
+        return $result;
+    }
 
     /**
-     * An example that checks if the staff member has permission to the `a_select` permission key depending on the specific constraint set.
-     * 
-     * @return bool 
+     * Method to list all pterodactyl panels
+     * @return array
      */
-    public function check_select($data)
+    public function panel_list(): array
     {
-        $data['constraint'] ??= 'value_1';
-
-        // First, get an instance of the staff module
-        $staff_service = $this->di['mod_service']('Staff');
-
-        /* Next, we use the staff module to check if the current staff member has permission.
-         * We pass `null` to the first parameter to tell it to check against current staff member
-         * The second parameter `example` is the name of the module
-         * The third parameter is the name of the permission key we are checking (`a_select`)
-         * The final parameter is the contraint we want to apply for the staff member's permission. When using the select type pemission, this is how you check if they have a specific one. (`value_1` for example)
-         */
-        if (!$staff_service->hasPermission(null, 'example', 'a_select', $data['constraint'])) {
-            throw new \FOSSBilling\InformationException('You do not have permission to perform this action', [], 403);
+        $panels = $this->di['db']->find('service_pterodactyl_panel');
+        $result = [];
+        foreach ($panels as $panel) {
+            $result[] = [
+                'id' => $panel->id,
+                'name' => $panel->name,
+                'url' => $panel->url,
+                'active' => $panel->active,
+            ];
         }
+
+        return $result;
+    }
+
+
+    /**
+     * Method to create a new pterodactyl server
+     * @param array $data
+     * @return bool, true if the server was created successfully
+     */
+    public function server_create($data): bool
+    {
+
+        // Check if the required parameters are present
+        $required = ['name' => 'Name', 'hostname' => 'Node hostname', 'ipv4' => 'IPv4 Address'];
+        $this->di['validator']->checkRequiredParamsForArray($required, $data);
+
+        $server = $this->di['db']->dispense('service_pterodactyl_node');
+        $server->name = $data['name'];
+        $server->location = $data['location'];
+        $server->hostname = $data['hostname'];
+        $server->ipv4 = $data['ipv4'];
+        $server->created_at = date('Y-m-d H:i:s');
+        $server->updated_at = $server->created_at;
+        $server->active = 1;
+        $this->di['db']->store($server);
+
+        $this->di['logger']->info('Pterodactyl server created', ['id' => $server->id]);
 
         return true;
     }
+ 
+    /**
+     * Method to create a new pterodactyl panel
+     * @param array $data
+     * @return bool, true if the panel was created successfully
+     */
+    public function panel_create($data): bool
+    {
+
+        // Check if the required parameters are present
+        $required = ['name' => 'Name', 'url' => 'Panel URL', 'api_key' => 'Application API Key'];
+        $this->di['validator']->checkRequiredParamsForArray($required, $data);
+
+        $panel = $this->di['db']->dispense('service_pterodactyl_panel');
+        $panel->name = $data['name'];
+        $panel->url = $data['url'];
+        $panel->api_key = $data['api_key'];
+        $panel->created_at = date('Y-m-d H:i:s');
+        $panel->updated_at = $panel->created_at;
+        $panel->active = 1;
+
+        $this->di['db']->store($panel);
+
+        $this->di['logger']->info('Pterodactyl panel created', ['id' => $panel->id]);
+
+        return true;
+    }
+
 }
