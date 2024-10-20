@@ -93,11 +93,13 @@ class Service
             `location` varchar(255) DEFAULT NULL,
             `ipv4` varchar(255) DEFAULT NULL,
             `hostname` varchar(255) DEFAULT NULL,
+            `panel_id` bigint(20) DEFAULT NULL,
             `config` text,
             `active` bigint(20) DEFAULT NULL,
             `created_at` varchar(35) DEFAULT NULL,
             `updated_at` varchar(35) DEFAULT NULL,
-            PRIMARY KEY (`id`)
+            PRIMARY KEY (`id`),
+            FOREIGN KEY (`panel_id`) REFERENCES `service_pterodactyl_panel` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
         $this->di['db']->exec($sql);
 

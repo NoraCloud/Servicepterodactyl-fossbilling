@@ -81,6 +81,7 @@ class Admin extends \Api_Abstract
                 'name' => $node->name,
                 'location' => $node->location,
                 'hostname' => $node->hostname,
+                'panel_id' => $node->panel_id,
                 'ipv4' => $node->ipv4,
                 'active' => $node->active,
             ];
@@ -91,13 +92,17 @@ class Admin extends \Api_Abstract
 
     /**
      * Method to list all pterodactyl panels
+     * @param bool $active - if true, only active panels will be returned
      * @return array
      */
-    public function panel_list(): array
+    public function panel_list($active = false): array
     {
         $panels = $this->di['db']->find('service_pterodactyl_panel');
         $result = [];
         foreach ($panels as $panel) {
+            if ($active && !$panel->active) {
+                continue;
+            }
             $result[] = [
                 'id' => $panel->id,
                 'name' => $panel->name,
@@ -111,6 +116,49 @@ class Admin extends \Api_Abstract
 
 
     /**
+     * Method to get a pterodactyl node
+     * @param int $node_id
+     * @return array
+     */
+    public function node_get($node_id): array
+    {
+        $node = $this->di['db']->load('service_pterodactyl_node', $node_id);
+        if (!$node) {
+            throw new \FOSSBilling\NotFoundException('Node not found');
+        }
+
+        return [
+            'id' => $node->id,
+            'name' => $node->name,
+            'location' => $node->location,
+            'hostname' => $node->hostname,
+            'panel_id' => $node->panel_id,
+            'ipv4' => $node->ipv4,
+            'active' => $node->active,
+        ];
+    }
+
+    /**
+     * Method to get a pterodactyl panel
+     * @param int $panel_id
+     * @return array
+     */
+    public function panel_get($panel_id): array
+    {
+        $panel = $this->di['db']->load('service_pterodactyl_panel', $panel_id);
+        if (!$panel) {
+            throw new \FOSSBilling\NotFoundException('Panel not found');
+        }
+
+        return [
+            'id' => $panel->id,
+            'name' => $panel->name,
+            'url' => $panel->url,
+            'active' => $panel->active,
+        ];
+    }
+
+    /**
      * Method to create a new pterodactyl node
      * @param array $data
      * @return bool, true if the node was created successfully
@@ -119,7 +167,7 @@ class Admin extends \Api_Abstract
     {
 
         // Check if the required parameters are present
-        $required = ['name' => 'Name', 'hostname' => 'Node hostname', 'ipv4' => 'IPv4 Address'];
+        $required = ['name' => 'Name', 'hostname' => 'Node hostname', 'ipv4' => 'IPv4 Address', 'panel_id' => 'Panel ID'];
         $this->di['validator']->checkRequiredParamsForArray($required, $data);
 
         $node = $this->di['db']->dispense('service_pterodactyl_node');
@@ -127,6 +175,7 @@ class Admin extends \Api_Abstract
         $node->location = $data['location'];
         $node->hostname = $data['hostname'];
         $node->ipv4 = $data['ipv4'];
+        $node->panel_id = $data['panel_id'];
         $node->created_at = date('Y-m-d H:i:s');
         $node->updated_at = $node->created_at;
         $node->active = 1;
