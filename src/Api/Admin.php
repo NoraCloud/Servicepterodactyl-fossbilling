@@ -68,21 +68,21 @@ class Admin extends \Api_Abstract
     }
 
     /**
-     * Method to list all pterodactyl servers
+     * Method to list all pterodactyl nodes
      * @return array
      */
-    public function server_list(): array
+    public function node_list(): array
     {
-        $servers = $this->di['db']->find('service_pterodactyl_node');
+        $nodes = $this->di['db']->find('service_pterodactyl_node');
         $result = [];
-        foreach ($servers as $server) {
+        foreach ($nodes as $node) {
             $result[] = [
-                'id' => $server->id,
-                'name' => $server->name,
-                'location' => $server->location,
-                'hostname' => $server->hostname,
-                'ipv4' => $server->ipv4,
-                'active' => $server->active,
+                'id' => $node->id,
+                'name' => $node->name,
+                'location' => $node->location,
+                'hostname' => $node->hostname,
+                'ipv4' => $node->ipv4,
+                'active' => $node->active,
             ];
         }
 
@@ -111,28 +111,28 @@ class Admin extends \Api_Abstract
 
 
     /**
-     * Method to create a new pterodactyl server
+     * Method to create a new pterodactyl node
      * @param array $data
-     * @return bool, true if the server was created successfully
+     * @return bool, true if the node was created successfully
      */
-    public function server_create($data): bool
+    public function node_create($data): bool
     {
 
         // Check if the required parameters are present
         $required = ['name' => 'Name', 'hostname' => 'Node hostname', 'ipv4' => 'IPv4 Address'];
         $this->di['validator']->checkRequiredParamsForArray($required, $data);
 
-        $server = $this->di['db']->dispense('service_pterodactyl_node');
-        $server->name = $data['name'];
-        $server->location = $data['location'];
-        $server->hostname = $data['hostname'];
-        $server->ipv4 = $data['ipv4'];
-        $server->created_at = date('Y-m-d H:i:s');
-        $server->updated_at = $server->created_at;
-        $server->active = 1;
-        $this->di['db']->store($server);
+        $node = $this->di['db']->dispense('service_pterodactyl_node');
+        $node->name = $data['name'];
+        $node->location = $data['location'];
+        $node->hostname = $data['hostname'];
+        $node->ipv4 = $data['ipv4'];
+        $node->created_at = date('Y-m-d H:i:s');
+        $node->updated_at = $node->created_at;
+        $node->active = 1;
+        $this->di['db']->store($node);
 
-        $this->di['logger']->info('Pterodactyl server created', ['id' => $server->id]);
+        $this->di['logger']->info('Pterodactyl node created', ['id' => $node->id]);
 
         return true;
     }
@@ -163,5 +163,56 @@ class Admin extends \Api_Abstract
 
         return true;
     }
+    
+    /**
+     * Method to delete a pterodactyl node
+     * @param array $data
+     * @return bool, true if the node was deleted successfully
+     */
+    public function node_delete($data): bool
+    {
+        $required = ['id' => 'Node ID'];
+        $this->di['validator']->checkRequiredParamsForArray($required, $data);
+        $node = $this->di['db']->load('service_pterodactyl_node', $data['id']);
+        if (!$node) {
+            throw new \FOSSBilling\NotFoundException('Node not found');
+        }
+
+        $this->di['db']->trash($node);
+
+        $this->di['logger']->info('Pterodactyl node deleted', ['id' => $data['id']]);
+
+        return true;
+    }
+
+    /**
+     * Method to delete a pterodactyl panel
+     * cant delete a panel if it is in use, check if there are any nodes using this panel
+     * @param array $data
+     * @return bool, true if the panel was deleted successfully
+     */
+    public function panel_delete($data): bool
+    {
+        $required = ['id' => 'Panel ID'];
+        $this->di['validator']->checkRequiredParamsForArray($required, $data);
+        $panel = $this->di['db']->load('service_pterodactyl_panel', $data['id']);
+        if (!$panel) {
+            throw new \FOSSBilling\NotFoundException('Panel not found');
+        }
+
+        $nodes = $this->di['db']->find('service_pterodactyl_node', ['panel_id' => $data['id']]);
+        if ($nodes) {
+            throw new \FOSSBilling\InformationException('Panel is in use by nodes', [], 400);
+        }
+
+        $this->di['db']->trash($panel);
+
+        $this->di['logger']->info('Pterodactyl panel deleted', ['id' => $data['id']]);
+
+        return true;
+    }
+
+
+
 
 }

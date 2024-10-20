@@ -69,8 +69,8 @@ class Admin implements \FOSSBilling\InjectionAwareInterface
     public function register(\Box_App &$app): void
     {
         $app->get('/servicepterodactyl', 'get_index', [], static::class);
-        $app->get('/servicepterodactyl/test', 'get_test', [], static::class);
-        $app->get('/servicepterodactyl/user/:id', 'get_user', ['id' => '[0-9]+'], static::class);
+        $app->get('/servicepterodactyl/node/:id', 'get_node', ['id' => '[0-9]+'], static::class);
+        $app->get('/servicepterodactyl/panel/:id', 'get_panel', ['id' => '[0-9]+'], static::class);
         $app->get('/servicepterodactyl/api', 'get_api', [], static::class);
     }
 
@@ -82,26 +82,42 @@ class Admin implements \FOSSBilling\InjectionAwareInterface
         return $app->render('mod_servicepterodactyl_index');
     }
 
-    public function get_test(\Box_App $app)
+    /**
+     * Method to get node details
+     * @param \Box_App $app
+     * @param null $id
+     * @return string
+     */
+    public function get_node(\Box_App $app, $id = null)
     {
         // always call this method to validate if admin is logged in
         $this->di['is_admin_logged'];
 
-        $params = [];
-        $params['youparamname'] = 'yourparamvalue';
+        $node = $this->di['db']->getExistingModelById('service_pterodactyl_node', $id);
 
-        return $app->render('mod_servicepterodactyl_index', $params);
+        $params = [];
+        $params['node'] = $node;
+
+        return $app->render('mod_servicepterodactyl_node', $params);
     }
 
-    public function get_user(\Box_App $app, $id)
+    /**
+     * Method to get panel details
+     * @param \Box_App $app
+     * @param null $id
+     * @return string
+     */
+    public function get_panel(\Box_App $app, $id = null)
     {
         // always call this method to validate if admin is logged in
         $this->di['is_admin_logged'];
 
-        $params = [];
-        $params['userid'] = $id;
+        $panel = $this->di['db']->getExistingModelById('service_pterodactyl_panel', $id);
 
-        return $app->render('mod_servicepterodactyl_index', $params);
+        $params = [];
+        $params['panel'] = $panel;
+
+        return $app->render('mod_servicepterodactyl_panel', $params);
     }
 
     public function get_api(\Box_App $app, $id = null)
