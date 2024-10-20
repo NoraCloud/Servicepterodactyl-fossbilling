@@ -1,8 +1,9 @@
 <?php
 
 /**
- * FOSSBilling.
+ * Pterodactyl module for FOSSBilling
  *
+ * @copyright NoraCloud 2024 (https://www.noracloud.fr)
  * @copyright FOSSBilling (https://www.fossbilling.org)
  * @license   Apache-2.0
  *
@@ -22,9 +23,7 @@
  * This module can be called from API or in template
  */
 
-// Change "Example" with your module's name
-
-namespace Box\Mod\Example\Api;
+namespace Box\Mod\Servicepterodactyl\Api;
 
 class Guest extends \Api_Abstract
 {

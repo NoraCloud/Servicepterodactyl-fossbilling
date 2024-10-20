@@ -1,8 +1,9 @@
 <?php
 
 /**
- * FOSSBilling.
+ * Pterodactyl module for FOSSBilling
  *
+ * @copyright NoraCloud 2024 (https://www.noracloud.fr)
  * @copyright FOSSBilling (https://www.fossbilling.org)
  * @license   Apache-2.0
  *
@@ -19,7 +20,7 @@
  * Class does not extend any other class.
  */
 
-namespace Box\Mod\Example\Controller;
+namespace Box\Mod\Servicepterodactyl\Controller;
 
 class Admin implements \FOSSBilling\InjectionAwareInterface
 {
@@ -45,18 +46,12 @@ class Admin implements \FOSSBilling\InjectionAwareInterface
     public function fetchNavigation(): array
     {
         return [
-            'group' => [
-                'index' => 1500,                // menu sort order
-                'location' => 'example',          // menu group identifier for subitems
-                'label' => __trans('Example module'),    // menu group title
-                'class' => 'example',           // used for css styling menu item
-            ],
             'subpages' => [
                 [
-                    'location' => 'example', // place this module in extensions group
-                    'label' => __trans('Example module submenu'),
+                    'location' => 'system', // place this module in extensions group
+                    'label' => __trans('Pterodactyl'),
                     'index' => 1500,
-                    'uri' => $this->di['url']->adminLink('example'),
+                    'uri' => $this->di['url']->adminLink('servicepterodactyl'),
                     'class' => '',
                 ],
             ],
@@ -73,10 +68,10 @@ class Admin implements \FOSSBilling\InjectionAwareInterface
      */
     public function register(\Box_App &$app): void
     {
-        $app->get('/example', 'get_index', [], static::class);
-        $app->get('/example/test', 'get_test', [], static::class);
-        $app->get('/example/user/:id', 'get_user', ['id' => '[0-9]+'], static::class);
-        $app->get('/example/api', 'get_api', [], static::class);
+        $app->get('/servicepterodactyl', 'get_index', [], static::class);
+        $app->get('/servicepterodactyl/test', 'get_test', [], static::class);
+        $app->get('/servicepterodactyl/user/:id', 'get_user', ['id' => '[0-9]+'], static::class);
+        $app->get('/servicepterodactyl/api', 'get_api', [], static::class);
     }
 
     public function get_index(\Box_App $app)
@@ -84,7 +79,7 @@ class Admin implements \FOSSBilling\InjectionAwareInterface
         // always call this method to validate if admin is logged in
         $this->di['is_admin_logged'];
 
-        return $app->render('mod_example_index');
+        return $app->render('mod_servicepterodactyl_index');
     }
 
     public function get_test(\Box_App $app)
@@ -95,7 +90,7 @@ class Admin implements \FOSSBilling\InjectionAwareInterface
         $params = [];
         $params['youparamname'] = 'yourparamvalue';
 
-        return $app->render('mod_example_index', $params);
+        return $app->render('mod_servicepterodactyl_index', $params);
     }
 
     public function get_user(\Box_App $app, $id)
@@ -106,7 +101,7 @@ class Admin implements \FOSSBilling\InjectionAwareInterface
         $params = [];
         $params['userid'] = $id;
 
-        return $app->render('mod_example_index', $params);
+        return $app->render('mod_servicepterodactyl_index', $params);
     }
 
     public function get_api(\Box_App $app, $id = null)
@@ -119,6 +114,6 @@ class Admin implements \FOSSBilling\InjectionAwareInterface
         $params['api_example'] = true;
         $params['list_from_controller'] = $list_from_controller;
 
-        return $app->render('mod_example_index', $params);
+        return $app->render('mod_servicepterodactyl_index', $params);
     }
 }

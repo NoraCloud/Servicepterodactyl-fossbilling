@@ -1,8 +1,9 @@
 <?php
 
 /**
- * FOSSBilling.
+ * Pterodactyl module for FOSSBilling
  *
+ * @copyright NoraCloud 2024 (https://www.noracloud.fr)
  * @copyright FOSSBilling (https://www.fossbilling.org)
  * @license   Apache-2.0
  *
@@ -14,14 +15,7 @@
  * with this source code in the file LICENSE
  */
 
-/**
- * This file is a delegate for module. Class does not extend any other class.
- *
- * All methods provided in this example are optional, but function names are
- * still reserved.
- */
-
-namespace Box\Mod\Example;
+namespace Box\Mod\Servicepterodactyl;
 
 use FOSSBilling\InformationException;
 
@@ -133,7 +127,7 @@ class Service
         $params = [];
         $sql = "SELECT meta_key, meta_value
             FROM extension_meta
-            WHERE extension = 'example'";
+            WHERE extension = 'servicepterodactyl'";
 
         $client_id = $data['client_id'] ?? null;
 
@@ -197,7 +191,7 @@ class Service
         // First we need to find if we already have a counter for this IP
         // We will use extension_meta table to store this data.
         $values = [
-            'ext' => 'example',
+            'ext' => 'servicepterodactyl',
             'rel_type' => 'ip',
             'rel_id' => $params['ip'],
             'meta_key' => 'counter',
@@ -206,7 +200,7 @@ class Service
         if (!$meta) {
             $meta = $di['db']->dispense('extension_meta');
             // $count->client_id = null; // client id is not known in this situation
-            $meta->extension = 'mod_example';
+            $meta->extension = 'mod_servicepterodactyl';
             $meta->rel_type = 'ip';
             $meta->rel_id = $params['ip'];
             $meta->meta_key = 'counter';
@@ -240,7 +234,7 @@ class Service
         $params = $event->getParameters();
 
         $meta = $di['db']->dispense('extension_meta');
-        $meta->extension = 'mod_example';
+        $meta->extension = 'mod_servicepterodactyl';
         $meta->meta_key = 'event_params';
         $meta->meta_value = json_encode($params);
         $meta->created_at = date('Y-m-d H:i:s');
