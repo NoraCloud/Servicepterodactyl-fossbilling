@@ -1,0 +1,88 @@
+{% import 'macro_functions.html.twig' as mf %}
+{% extends "layout_default.html.twig" %}
+{% block meta_title %}{{ 'Manage Pterodactyl Node' | trans }}{% endblock %}
+    {% set active_menu = 'system' %}
+
+    {% block content %}
+        <div class="card">
+            <div class="card-body">
+                <h5>{{ 'Manage Pterodactyl node' | trans }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="admin/servicepterodactyl/node_update" id="node-update" class="api-form" data-api-msg="Node updated">
+                    <input type="hidden" name="CSRFToken" value="{{ CSRFToken }}"/>
+                    <input type="hidden" name="id" value="{{ node.id }}" />
+
+
+                    <div class="mb-3 row">
+                        <label class="form-label col-3 col-form-label">{{ 'Name' | trans }}:</label>
+                        <div class="col">
+                            <input class="form-control" type="text" name="name" value="{{ node.name}} " required placeholder="{{ 'Unique name to identify this node (you can use Pterodactyl node name)' | trans }}">
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label col-3 col-form-label">{{ 'Panel' | trans }}:</label>
+                        <div class="col">
+                            <select class="form-select" name="panel_id" required>
+                                {% set panels = admin.servicepterodactyl_panel_list(true) %}
+                                {% for panel in panels %}
+                                    <option value="{{ panel.id }}" {% if node.panel_id == panel.id %}selected="selected"{% endif %}>{{ panel.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label col-3 col-form-label">{{ 'Location' | trans }}:</label>
+                        <div class="col">
+                            <input class="form-control" type="text" name="location" value="{{ node.location }}" placeholder="{{ 'Pterodactyl node location' | trans }}">
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label col-3 col-form-label">{{ 'Hostname' | trans }}:</label>
+                        <div class="col">
+                            <input class="form-control" type="text" name="hostname" value="{{ node.hostname }}" required placeholder="{{ 'node1.yournodedomain.com' | trans }}">
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label col-3 col-form-label">{{ 'IPv4 address' | trans }}:</label>
+                        <div class="col">
+                            <input class="form-control" type="text" name="ipv4" value="{{ node.ipv4 }}" required placeholder="{{ 'Primary IPv4 address of the node' | trans }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label class="form-label col-3 col-form-label">{{ 'Extra configuration' | trans }}:</label>
+                        <div class="col">
+                            <input class="form-control" type="text" name="config" value="{{ node.config}} ">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label class="form-label col-3 col-form-label">{{ 'Enable/Disable' | trans }}:</label>
+                        <div class="col">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" id="radioActiveYes" type="radio" name="active" value="1" {% if node.active %}checked="checked"{% endif %}>
+                                <label class="form-check-label" for="radioActiveYes">{{ 'Yes' | trans }}</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" id="radioActiveNo" type="radio" name="active" value="0" {% if not node.active %}checked="checked"{% endif %}>
+                                <label class="form-check-label" for="radioActiveNo">{{ 'No' | trans }}</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="submit" value="{{ 'Update node' | trans }}" class="btn btn-primary">
+
+                    <a class="btn btn-primary api-link" href="{{ 'api/admin/servicepterodactyl/node_test_connection'|link({ 'id': node.id, 'CSRFToken': CSRFToken }) }}" title="{{ 'Test connection' | trans }}" data-api-msg="{{ 'Node connected' | trans }}">
+                        <svg class="icon">
+                            <use xlink:href="#wifi"/>
+                        </svg>
+                        <span>{{ 'Test connection' | trans }}</span>
+                    </a>
+                </form>
+            </div>
+        </div>
+    {% endblock %}
+    {% block js%}
+    {% endblock %}
+

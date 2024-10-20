@@ -1,0 +1,72 @@
+{% import 'macro_functions.html.twig' as mf %}
+{% extends "layout_default.html.twig" %}
+{% block meta_title %}{{ 'Manage Pterodactyl panel' | trans }}{% endblock %}
+    {% set active_menu = 'system' %}
+
+    {% block content %}
+        <div class="card">
+            <div class="card-body">
+                <h5>{{ 'Manage Pterodactyl panel' | trans }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="admin/servicepterodactyl/panel_update" id="panel-update" class="api-form" data-api-msg="Panel updated">
+                    <input type="hidden" name="CSRFToken" value="{{ CSRFToken }}"/>
+                    <input type="hidden" name="id" value="{{ panel.id }}" />
+
+
+<div class="mb-3 row">
+                                <label class="form-label col-3 col-form-label">{{ 'Name' | trans }}:</label>
+                                <div class="col">
+                                    <input class="form-control" type="text" name="name" value="{{ panel.name }}" required placeholder="{{ 'Panel name' | trans }}">
+                                </div>
+                            </div>
+                            <div class="mb-3 row">
+                                <label class="form-label col-3 col-form-label">{{ 'URL' | trans }}:</label>
+                                <div class="col">
+                                    <input class="form-control" type="text" name="url" value="{{ panel.url }}" required placeholder="{{ 'Panel URL (e.g. panel.domain.tld)' | trans }}">
+                                </div>
+                            </div>
+                            <div class="mb-3 row">
+                                <label class="form-label col-3 col-form-label">{{ 'Application API Key' | trans }}:</label>
+                                <div class="col">
+                                    <input class="form-control" type="password" name="api_key" value="{{ panel.api_key }}" required placeholder="{{ 'Panel Application API Key' | trans }}">
+                                </div>
+                            </div>
+
+                            <div class="mb-3 row">
+                                <label class="form-label col-3 col-form-label">{{ 'Extra configuration' | trans }}:</label>
+                                <div class="col">
+                                    <input class="form-control" type="text" name="config" value="{{ panel.config }}">
+                                </div>
+                            </div>
+
+
+                    <div class="mb-3 row">
+                        <label class="form-label col-3 col-form-label">{{ 'Enable/Disable' | trans }}:</label>
+                        <div class="col">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" id="radioActiveYes" type="radio" name="active" value="1" {% if panel.active %}checked="checked"{% endif %}>
+                                <label class="form-check-label" for="radioActiveYes">{{ 'Yes' | trans }}</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" id="radioActiveNo" type="radio" name="active" value="0" {% if not panel.active %}checked="checked"{% endif %}>
+                                <label class="form-check-label" for="radioActiveNo">{{ 'No' | trans }}</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="submit" value="{{ 'Update panel' | trans }}" class="btn btn-primary">
+
+                    <a class="btn btn-primary api-link" href="{{ 'api/admin/servicepterodactyl/panel_test_connection'|link({ 'id': panel.id, 'CSRFToken': CSRFToken }) }}" title="{{ 'Test connection' | trans }}" data-api-msg="{{ 'Panel connected' | trans }}">
+                        <svg class="icon">
+                            <use xlink:href="#wifi"/>
+                        </svg>
+                        <span>{{ 'Test connection' | trans }}</span>
+                    </a>
+                </form>
+            </div>
+        </div>
+    {% endblock %}
+    {% block js%}
+    {% endblock %}
+

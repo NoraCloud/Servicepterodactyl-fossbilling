@@ -79,6 +79,7 @@ class Service
             `name` varchar(255) DEFAULT NULL,
             `url` varchar(255) DEFAULT NULL,
             `api_key` varchar(255) DEFAULT NULL,
+            `config` text,
             `active` bigint(20) DEFAULT NULL,
             `created_at` varchar(35) DEFAULT NULL,
             `updated_at` varchar(35) DEFAULT NULL,

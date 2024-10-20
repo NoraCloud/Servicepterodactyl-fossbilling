@@ -176,6 +176,7 @@ class Admin extends \Api_Abstract
         $node->hostname = $data['hostname'];
         $node->ipv4 = $data['ipv4'];
         $node->panel_id = $data['panel_id'];
+        $node->config = json_encode($data['config']);
         $node->created_at = date('Y-m-d H:i:s');
         $node->updated_at = $node->created_at;
         $node->active = 1;
@@ -202,6 +203,7 @@ class Admin extends \Api_Abstract
         $panel->name = $data['name'];
         $panel->url = $data['url'];
         $panel->api_key = $data['api_key'];
+        $panel->config = json_encode($data['config']);
         $panel->created_at = date('Y-m-d H:i:s');
         $panel->updated_at = $panel->created_at;
         $panel->active = 1;
@@ -209,6 +211,62 @@ class Admin extends \Api_Abstract
         $this->di['db']->store($panel);
 
         $this->di['logger']->info('Pterodactyl panel created', ['id' => $panel->id]);
+
+        return true;
+    }
+
+    /**
+     * Method to update a pterodactyl node
+     * @param array $data
+     * @return bool, true if the node was updated successfully
+     */
+    public function node_update($data): bool
+    {
+        $required = ['id' => 'Node ID'];
+        $this->di['validator']->checkRequiredParamsForArray($required, $data);
+        $node = $this->di['db']->load('service_pterodactyl_node', $data['id']);
+        if (!$node) {
+            throw new \FOSSBilling\NotFoundException('Node not found');
+        }
+
+        $node->name = $data['name'] ?? $node->name;
+        $node->location = $data['location'] ?? $node->location;
+        $node->hostname = $data['hostname'] ?? $node->hostname;
+        $node->ipv4 = $data['ipv4'] ?? $node->ipv4;
+        $node->panel_id = $data['panel_id'] ?? $node->panel_id;
+        $node->config = $data['config'] ?? $node->config;
+        $node->updated_at = date('Y-m-d H:i:s');
+        $node->active = $data['active'] ?? $node->active;
+        $this->di['db']->store($node);
+
+        $this->di['logger']->info('Pterodactyl node updated', ['id' => $node->id]);
+
+        return true;
+    }
+
+    /**
+     * Method to update a pterodactyl panel
+     * @param array $data
+     * @return bool, true if the panel was updated successfully
+     */
+    public function panel_update($data): bool
+    {
+        $required = ['id' => 'Panel ID'];
+        $this->di['validator']->checkRequiredParamsForArray($required, $data);
+        $panel = $this->di['db']->load('service_pterodactyl_panel', $data['id']);
+        if (!$panel) {
+            throw new \FOSSBilling\NotFoundException('Panel not found');
+        }
+
+        $panel->name = $data['name'] ?? $panel->name;
+        $panel->url = $data['url'] ?? $panel->url;
+        $panel->api_key = $data['api_key'] ?? $panel->api_key;
+        $panel->config = $data['config'] ?? $panel->config;
+        $panel->updated_at = date('Y-m-d H:i:s');
+        $panel->active = $data['active'] ?? $panel->active;
+        $this->di['db']->store($panel);
+
+        $this->di['logger']->info('Pterodactyl panel updated', ['id' => $panel->id]);
 
         return true;
     }

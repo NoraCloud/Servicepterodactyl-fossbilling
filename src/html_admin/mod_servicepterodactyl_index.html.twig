@@ -41,6 +41,7 @@
                         <thead>
                             <tr>
                                 <th>{{ 'ID' | trans }}</th>
+                                <th>{{ 'Panel ID' | trans }}</th>
                                 <th>{{ 'Name' | trans }}</th>
                                 <th>{{ 'Hostname' | trans }}</th>
                                 <th>{{ 'IPv4' | trans }}</th>
@@ -55,6 +56,7 @@
                             <tbody>
                                 <tr>
                                     <td>{{ node.id }}</td>
+                                    <td><a href="{{ '/servicepterodactyl/panel'|alink }}/{{ node.panel_id }}">{{ admin.servicepterodactyl_panel_get(node.panel_id).name }}</a></td> 
                                     <td>{{ node.name }}</td>
                                     <td><a href="https://{{node.access}}:8006" target="_blank">{{node.hostname}}</a></td>
                                     <td>{{ node.ipv4 }}</td>
@@ -101,7 +103,7 @@
                                 <label class="form-label col-3 col-form-label">{{ 'Panel' | trans }}:</label>
                                 <div class="col">
                                     <select class="form-select" name="panel" required>
-                                        {% set panels = admin.servicepterodactyl_panel_list() %}
+                                        {% set panels = admin.servicepterodactyl_panel_list(true) %}
                                         {% for panel in panels %}
                                             <option value="{{ panel.id }}">{{ panel.name }}</option>
                                         {% endfor %}
