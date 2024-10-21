@@ -71,7 +71,6 @@ class Admin implements \FOSSBilling\InjectionAwareInterface
         $app->get('/servicepterodactyl', 'get_index', [], static::class);
         $app->get('/servicepterodactyl/node/:id', 'get_node', ['id' => '[0-9]+'], static::class);
         $app->get('/servicepterodactyl/panel/:id', 'get_panel', ['id' => '[0-9]+'], static::class);
-        $app->get('/servicepterodactyl/api', 'get_api', [], static::class);
     }
 
     public function get_index(\Box_App $app)
@@ -120,16 +119,4 @@ class Admin implements \FOSSBilling\InjectionAwareInterface
         return $app->render('mod_servicepterodactyl_panel', $params);
     }
 
-    public function get_api(\Box_App $app, $id = null)
-    {
-        // always call this method to validate if admin is logged in
-        $api = $this->di['api_admin'];
-        $list_from_controller = $api->example_get_something();
-
-        $params = [];
-        $params['api_example'] = true;
-        $params['list_from_controller'] = $list_from_controller;
-
-        return $app->render('mod_servicepterodactyl_index', $params);
-    }
 }
