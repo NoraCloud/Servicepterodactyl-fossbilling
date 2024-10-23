@@ -23,6 +23,10 @@
 
 namespace Box\Mod\Servicepterodactyl\Api;
 
+use Box\Mod\Servicepterodactyl\PterodactylAPI as PterodactylAPI;
+
+require(__DIR__ . DIRECTORY_SEPARATOR . '../Pterodactyl.php');
+
 class Admin extends \Api_Abstract
 {
     /**
@@ -124,7 +128,7 @@ class Admin extends \Api_Abstract
     {
         $node = $this->di['db']->load('service_pterodactyl_node', $node_id);
         if (!$node) {
-            throw new \FOSSBilling\NotFoundException('Node not found');
+            throw new \FOSSBilling\NotFoundException('Node not found', [], 404);
         }
 
         return [
@@ -147,7 +151,7 @@ class Admin extends \Api_Abstract
     {
         $panel = $this->di['db']->load('service_pterodactyl_panel', $panel_id);
         if (!$panel) {
-            throw new \FOSSBilling\NotFoundException('Panel not found');
+            throw new \FOSSBilling\NotFoundException('Panel not found', [], 404);
         }
 
         return [
@@ -226,7 +230,7 @@ class Admin extends \Api_Abstract
         $this->di['validator']->checkRequiredParamsForArray($required, $data);
         $node = $this->di['db']->load('service_pterodactyl_node', $data['id']);
         if (!$node) {
-            throw new \FOSSBilling\NotFoundException('Node not found');
+            throw new \FOSSBilling\NotFoundException('Node not found', [], 404);
         }
 
         $node->name = $data['name'] ?? $node->name;
@@ -255,7 +259,7 @@ class Admin extends \Api_Abstract
         $this->di['validator']->checkRequiredParamsForArray($required, $data);
         $panel = $this->di['db']->load('service_pterodactyl_panel', $data['id']);
         if (!$panel) {
-            throw new \FOSSBilling\NotFoundException('Panel not found');
+            throw new \FOSSBilling\NotFoundException('Panel not found', [], 404);
         }
 
         $panel->name = $data['name'] ?? $panel->name;
@@ -282,7 +286,7 @@ class Admin extends \Api_Abstract
         $this->di['validator']->checkRequiredParamsForArray($required, $data);
         $node = $this->di['db']->load('service_pterodactyl_node', $data['id']);
         if (!$node) {
-            throw new \FOSSBilling\NotFoundException('Node not found');
+            throw new \FOSSBilling\NotFoundException('Node not found', [], 404);
         }
 
         $this->di['db']->trash($node);
@@ -304,7 +308,7 @@ class Admin extends \Api_Abstract
         $this->di['validator']->checkRequiredParamsForArray($required, $data);
         $panel = $this->di['db']->load('service_pterodactyl_panel', $data['id']);
         if (!$panel) {
-            throw new \FOSSBilling\NotFoundException('Panel not found');
+            throw new \FOSSBilling\NotFoundException('Panel not found', [], 404);
         }
 
         $nodes = $this->di['db']->find('service_pterodactyl_node', ['panel_id' => $data['id']]);
@@ -319,7 +323,44 @@ class Admin extends \Api_Abstract
         return true;
     }
 
+    /**
+     * Method to test the connection to a pterodactyl panel
+     * @param array $data
+     * @return bool,  if the connection was successful
+     */
+    public function panel_test_connection($data): bool
+    {
+        $required = ['id' => 'Panel ID'];
+        $this->di['validator']->checkRequiredParamsForArray($required, $data);
+        $panel = $this->di['db']->load('service_pterodactyl_panel', $data['id']);
 
+        if (!$panel) {
+            throw new \FOSSBilling\NotFoundException('Panel not found', [], 404);
+        }
+
+        $pterodactyl = new PterodactylAPI($panel->url, $panel->api_key);
+
+        return is_numeric($pterodactyl->getServerCount());
+    
+    }
+
+    /**
+     * Method to test the connection to a pterodactyl node
+     * @param array $data
+     * @return bool, true if the connection was successful
+     */
+    public function node_test_connection($data): bool
+    {
+        $required = ['id' => 'Node ID'];
+        $this->di['validator']->checkRequiredParamsForArray($required, $data);
+        $node = $this->di['db']->load('service_pterodactyl_node', $data['id']);
+
+        if (!$node) {
+            throw new \FOSSBilling\NotFoundException('Node not found', [], 404);
+        }
+
+        return PterodactylAPI::testNodeConnection($node->hostname, $node->ipv4, $node->wingsPort ?? 8080);
+    }
 
 
 }
