@@ -18,10 +18,12 @@
 namespace Box\Mod\Servicepterodactyl;
 
 use FOSSBilling\InformationException;
+use Box\Mod\Servicepterodactyl\PterodactylAPI;
 
 class Service
 {
     protected $di;
+    protected PterodactylAPI $pterodactyl_api;
 
     public function setDi(\Pimple\Container|null $di): void
     {
@@ -94,6 +96,7 @@ class Service
             `location` varchar(255) DEFAULT NULL,
             `ipv4` varchar(255) DEFAULT NULL,
             `hostname` varchar(255) DEFAULT NULL,
+            `wings_port` int(11) DEFAULT 8080,
             `panel_id` bigint(20) DEFAULT NULL,
             `config` text,
             `active` bigint(20) DEFAULT NULL,

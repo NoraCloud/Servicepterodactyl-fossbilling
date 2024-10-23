@@ -17,7 +17,7 @@
                     <div class="mb-3 row">
                         <label class="form-label col-3 col-form-label">{{ 'Name' | trans }}:</label>
                         <div class="col">
-                            <input class="form-control" type="text" name="name" value="{{ node.name}} " required placeholder="{{ 'Unique name to identify this node (you can use Pterodactyl node name)' | trans }}">
+                            <input class="form-control" type="text" name="name" value="{{ node.name }} " required placeholder="{{ 'Unique name to identify this node (you can use Pterodactyl node name)' | trans }}">
                         </div>
                     </div>
                     <div class="mb-3 row">
@@ -43,6 +43,13 @@
                             <input class="form-control" type="text" name="hostname" value="{{ node.hostname }}" required placeholder="{{ 'node1.yournodedomain.com' | trans }}">
                         </div>
                     </div>
+                    <div class="mb-3 row">
+                        <label class="form-label col-3 col-form-label">{{ 'Wings Port' | trans }}:</label>
+                        <div class="col">
+                            <input class="form-control" type="text" name="port" value="{{ node.wings_port }}" required placeholder="8080">
+                        </div>
+                    </div>
+
                     <div class="mb-3 row">
                         <label class="form-label col-3 col-form-label">{{ 'IPv4 address' | trans }}:</label>
                         <div class="col">

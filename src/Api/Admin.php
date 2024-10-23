@@ -136,6 +136,7 @@ class Admin extends \Api_Abstract
             'name' => $node->name,
             'location' => $node->location,
             'hostname' => $node->hostname,
+            'wings_port' => $node->wings_port,
             'panel_id' => $node->panel_id,
             'ipv4' => $node->ipv4,
             'active' => $node->active,
@@ -178,6 +179,7 @@ class Admin extends \Api_Abstract
         $node->name = $data['name'];
         $node->location = $data['location'];
         $node->hostname = $data['hostname'];
+        $node->wings_port = $data['port'];
         $node->ipv4 = $data['ipv4'];
         $node->panel_id = $data['panel_id'];
         $node->config = json_encode($data['config']);
@@ -236,6 +238,7 @@ class Admin extends \Api_Abstract
         $node->name = $data['name'] ?? $node->name;
         $node->location = $data['location'] ?? $node->location;
         $node->hostname = $data['hostname'] ?? $node->hostname;
+        $node->wings_port = $data['port'] ?? $node->port;
         $node->ipv4 = $data['ipv4'] ?? $node->ipv4;
         $node->panel_id = $data['panel_id'] ?? $node->panel_id;
         $node->config = $data['config'] ?? $node->config;

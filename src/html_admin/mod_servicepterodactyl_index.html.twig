@@ -58,7 +58,7 @@
                                     <td>{{ node.id }}</td>
                                     <td><a href="{{ '/servicepterodactyl/panel'|alink }}/{{ node.panel_id }}">{{ admin.servicepterodactyl_panel_get(node.panel_id).name }}</a></td> 
                                     <td>{{ node.name }}</td>
-                                    <td><a href="https://{{node.access}}:8006" target="_blank">{{node.hostname}}</a></td>
+                                    <td>{{ node.hostname }}</td>
                                     <td>{{ node.ipv4 }}</td>
                                     <td>{{ node.location }}</td>
                                     <td>{{ mf.q(node.active) }}</td>
