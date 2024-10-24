@@ -307,6 +307,55 @@ class Admin extends \Api_Abstract
 
         return true;
     }
+
+    /**
+     * Method to update a pterodactyl product configuration
+     * @param array $data
+     * @return bool, true if the product was updated successfully
+     */
+    public function product_update($data)
+    {
+        $required = array(
+            'id'            => 'Product id is missing',
+            'egg_conf'         => 'Egg configuration is missing',
+            'cpu'           => 'CPU limit is missing',
+            'memory'        => 'Memory amount is missing',
+            'disk'          => 'Disk space is missing',
+            'backups'        => 'Backup limit is missing',
+            'allocations'   => 'Allocations limit is missing',
+            'databases'      => 'Databases limit is missing',
+        );
+
+
+        $panel_id = explode('|', $data['egg_conf'])[0];
+        $egg_id = explode('|', $data['egg_conf'])[1];
+
+        if (!$panel_id || preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $egg_id) !== 1) {
+            throw new \FOSSBilling\InformationException('Invalid egg configuration', [], 400);
+        }
+
+        $this->di['validator']->checkRequiredParamsForArray($required, $data);
+        $product  = $this->di['db']->findOne('product', 'id=:id', array(':id' => $data['id']));
+
+        $config = array(
+            'panel_id'      => $panel_id,
+            'egg_id'        => $egg_id,
+            'cpu'           => $data['cpu'],
+            'memory'        => $data['memory'],
+            'disk'          => $data['disk'],
+            'backups'       => $data['backups'],
+            'allocations'   => $data['allocations'],
+            'databases'     => $data['databases'],
+        );
+
+        $product->config         = json_encode($config);
+        $product->updated_at    = date('Y-m-d H:i:s');
+        $this->di['db']->store($product);
+
+        $this->di['logger']->info('Update Pterodactyl product %s', $product->id);
+        return true;
+    }
+
     
     /**
      * Method to delete a pterodactyl node
