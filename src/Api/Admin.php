@@ -118,6 +118,36 @@ class Admin extends \Api_Abstract
         return $result;
     }
 
+    /**
+     * Method to get the egg list
+     * @return array Eggs list
+     */
+    public function egg_list(): array
+    {
+        $panels = $this->di['db']->find('service_pterodactyl_panel');
+        $result = [];
+        foreach ($panels as $panel) {
+            try{
+                if ($this->panel_test_connection(['id' => $panel->id])) {
+                    $pterodactyl = new PterodactylAPI($panel->url, $panel->api_key);
+                    $eggs = $pterodactyl->getEggsList();
+                    foreach ($eggs as $egg) {
+                        $egg = $egg['attributes'];
+                        $result[] = [
+                            'panel_id' => $panel->id,
+                            'panel_name' => $panel->name,
+                            'nest_id' => $egg['nest'],
+                            'uuid' => $egg['uuid'],
+                            'name' => $egg['name'],
+                        ];
+                    }
+                }
+            }
+            catch (\Exception $e) {
+            }
+        }
+        return $result;
+    }
 
     /**
      * Method to get a pterodactyl node

@@ -82,6 +82,21 @@ class PterodactylAPI {
         return $this->_callAPI('GET', '/api/application/servers');
     }
 
+    /**
+     * Method to get the eggs list
+     * @return array Eggs list
+     */
+    public function getEggsList() {
+        $nests = $this->_callAPI('GET', '/api/application/nests');
+        $eggs = [];
+        foreach ($nests['content']['data'] as $nest) {
+            $nest_id = $nest['attributes']['id'];
+            $response = $this->_callAPI('GET', '/api/application/nests/' . $nest_id . '/eggs');
+            $eggs = array_merge($eggs, $response['content']['data']);
+        }
+        return $eggs;
+    }
+
     //get node list ??
     //
     //get panel detail
