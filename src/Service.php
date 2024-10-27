@@ -17,7 +17,7 @@
 
 namespace Box\Mod\Servicepterodactyl;
 
-use FOSSBilling\InformationException;
+use FOSSBilling\{Exception,InformationException};
 use Box\Mod\Servicepterodactyl\PterodactylAPI;
 
 class Service
@@ -143,8 +143,9 @@ class Service
      */
     public function uninstall(): bool
     {
+        $this->di['db']->exec('DROP TABLE IF EXISTS `service_pterodactyl`');
         $this->di['db']->exec('DROP TABLE IF EXISTS `service_pterodactyl_node`');
-        $this->di['db']->exec('DROP TABLE IF EXISTS `service_proxmox`');
+        $this->di['db']->exec('DROP TABLE IF EXISTS `service_pterodactyl_panel`');
         return true;
     }
 
@@ -206,4 +207,118 @@ class Service
         return $row;
     }
 
+    /**
+     * Method for creating a new service
+     * Triggered when a new order is created
+     * @param \Model_ClientOrder $order
+     * @return mixed - service model
+     */
+    public function create(\Model_ClientOrder $order){
+        $model = $this->di['db']->dispense('service_pterodactyl');
+        $model->client_id = $order->client_id;
+        $model->order_id = $order->id;
+        $model->updated_at = date('Y-m-d H:i:s');
+        $model->created_at = date('Y-m-d H:i:s');
+
+        $this->di['db']->store($model);
+
+        return $model;
+
+    }
+
+    /**
+        * Method for activating a service
+        * Triggered when a service is activated
+        * @param \Model_ClientOrder $order
+        * @param \Model_Service $model - service model
+     */
+    public function activate(\Model_ClientOrder $order, \Model_Service $model){
+        if(!is_object($model)){
+            throw new Exception('Service not found. Could not activate order');
+        }
+
+        $client = $this->di['db']->load('client', $order->client_id);
+        $product = $this->di['db']->load('product', $order->product_id);
+
+        if(!$product){
+            throw new Exception('Product not found. Could not activate order');
+        }
+
+        // FAIRE LA SOUPE
+
+
+    }
+
+    /**
+     * Method for renewing a service
+     * Triggered when a service is renewed
+     * @param \Model_ClientOrder $order
+     */
+    public function renew(\Model_ClientOrder $order){
+        $service = $order->getService();
+        $service->setUpdatedAt(date('Y-m-d H:i:s'));
+        $service->save();
+    }
+
+    /**
+     * Method for suspending a service
+     * Triggered when a service is suspended
+     * @param \Model_ClientOrder $order
+     */
+    public function suspend(\Model_ClientOrder $order){
+        $service = $order->getService();
+        $service->setActive(0);
+        $service->setUpdatedAt(date('Y-m-d H:i:s'));
+        $service->save();
+    }
+
+    /**
+     * Method for unsuspending a service
+     * Triggered when a service is unsuspended
+     * @param \Model_ClientOrder $order
+     */
+    public function unsuspend(\Model_ClientOrder $order){
+        $service = $order->getService();
+        $service->setActive(1);
+        $service->setUpdatedAt(date('Y-m-d H:i:s'));
+        $service->save();
+    }
+
+    /**
+     * Method for cancelling a service
+     * Triggered when a service is cancelled
+     * @param \Model_ClientOrder $order
+     */
+    public function cancel(\Model_ClientOrder $order){
+        $service = $order->getService();
+        $service->setActive(0);
+        $service->setUpdatedAt(date('Y-m-d H:i:s'));
+        $service->save();
+    }
+
+    /**
+     * Method for uncancelled a service
+     * Triggered when a service is uncancelled
+     * @param \Model_ClientOrder $order
+     */
+    public function uncancel(\Model_ClientOrder $order){
+        $service = $order->getService();
+        $service->setActive(1);
+        $service->setUpdatedAt(date('Y-m-d H:i:s'));
+        $service->save();
+    }
+
+    /**
+     * Method for deleting a service
+     * Triggered when a service is deleted
+     * @param \Model_ClientOrder $order
+     */
+    public function delete(\Model_ClientOrder $order){
+        $service = $order->getService();
+        $service->delete();
+    }
+
+
+
 }
+
