@@ -18,10 +18,6 @@ use Exception;
 
 class PterodactylAPI {
 
-    //create diffent methods for example get server list
-    //
-    // use a generic method to call the API
-
     private string $api_url;
     private string $api_key;
     private bool $https;
@@ -150,7 +146,6 @@ class PterodactylAPI {
         return $status === 401 && json_decode($response, true)['request_id'] !== null;
 
     }
-
 
     /**
      * Get node ID
