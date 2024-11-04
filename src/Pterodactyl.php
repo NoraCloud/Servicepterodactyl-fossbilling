@@ -14,8 +14,7 @@
  */
 
 namespace Box\Mod\Servicepterodactyl;
-
-use FOSSBilling\InformationException;
+use Exception;
 
 class PterodactylAPI {
 
@@ -55,7 +54,7 @@ class PterodactylAPI {
         if(curl_errno($curl)) {
             $msg = curl_error($curl);
             curl_close($curl);
-            throw new InformationException('API call failed: ' . $msg, [], '500');
+            throw new Exception('Error connecting to API: ' . $msg, $status);
         }
 
         curl_close($curl);
@@ -65,9 +64,8 @@ class PterodactylAPI {
             case 201:
                 break;
             case 401:
-                throw new InformationException('API call failed: Unauthorized', [], '401');
+                throw new Exception('Unauthorized API call: ' . $response, $status);
             default:
-                throw new InformationException('API call failed: ' . $response, [], '500');
         }
 
         return [
@@ -108,7 +106,6 @@ class PterodactylAPI {
      * @return array Node details
      */
     public function getNodeDetails(int $node_id) {
-        throw new InformationException($node_id, [], '500');
         $response = $this->_callAPI('GET', '/api/application/nodes/' . $node_id);
         return $response['content']['attributes'];
     }
@@ -123,7 +120,7 @@ class PterodactylAPI {
     public static function testNodeConnection(string $fqdn, string $ip, int $port = 8080) {
         
         if (gethostbyname($fqdn) !== $ip) {
-            throw new InformationException('FQDN does not resolve to IP', [], '500');
+            throw new Exception('FQDN does not resolve to IP', 400);
         }
 
         $curl = curl_init();
@@ -144,7 +141,7 @@ class PterodactylAPI {
         if(curl_errno($curl)) {
             $msg = curl_error($curl);
             curl_close($curl);
-            throw new InformationException('Error connecting to node: ' . $msg, [], '500');
+                       throw new Exception('Error connecting to node: ' . $msg, $status);
         }
 
         curl_close($curl);
@@ -167,7 +164,7 @@ class PterodactylAPI {
                 return $node['attributes']['id'];
             }
         }
-        throw new InformationException('Node not found', [], '500');
+        throw new Exception('Node not found', 404);
     }
 
     /**
