@@ -24,15 +24,17 @@ class PterodactylAPI {
 
     private string $api_url;
     private string $api_key;
+    private bool $https;
 
-    public function __construct(string $api_url, string $api_key) {
+    public function __construct(string $api_url, string $api_key, bool $https = true) {
         $this->api_url = $api_url;
         $this->api_key = $api_key;
+        $this->https = $https;
     }
 
     private function _callAPI(string $method, string $url, array $data = []) {
         $curl = curl_init();
-        $url = 'https://' . $this->api_url . $url;
+        $url = ($this->https ? 'https://' : 'http://') . $this->api_url . $url;
         $headers = [
             'Authorization: Bearer ' . $this->api_key,
             'Content-Type: application/json',
@@ -42,6 +44,7 @@ class PterodactylAPI {
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10); 
 
         if ($method === 'POST') {
             curl_setopt($curl, CURLOPT_POST, true);
