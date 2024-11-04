@@ -95,13 +95,11 @@ class PterodactylAPI {
             $response = $this->_callAPI('GET', '/api/application/nests/' . $nest_id . '/eggs');
             $eggs = array_merge($eggs, $response['content']['data']);
         }
-        return $eggs;
+        return [
+            'status' => $nests['status'],
+            'content' => $eggs,
+        ];
     }
-
-    //get node list ??
-    //
-    //get panel detail
-    //get ndode dertail
 
     /**
      * Method to get node details
