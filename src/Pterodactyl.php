@@ -30,6 +30,7 @@ class PterodactylAPI {
 
     private function _callAPI(string $method, string $url, array $data = []) {
         $curl = curl_init();
+        //TODO use /api in url
         $url = ($this->https ? 'https://' : 'http://') . $this->api_url . $url;
         $headers = [
             'Authorization: Bearer ' . $this->api_key,
@@ -75,7 +76,6 @@ class PterodactylAPI {
         ];
 
     }
-
 
     public function getServerList() {
         return $this->_callAPI('GET', '/api/application/servers');
@@ -177,7 +177,7 @@ class PterodactylAPI {
      * Get server count
      * @return int Server count
      */
-    public function getServerCount() {
+    public function getServerCount(): int {
         $response = $this->_callAPI('GET', '/api/application/servers');
         return $response['content']['meta']['pagination']['total'];
     }
@@ -195,7 +195,7 @@ class PterodactylAPI {
         if(empty($response['content']['data']) || $response['content']['data'][0]['attributes']['email'] !== $email) {
             throw new Exception('User not found', 404);
         }
-        return $response['content']['data'][0];
+        return $response;
     }
 
     /**
