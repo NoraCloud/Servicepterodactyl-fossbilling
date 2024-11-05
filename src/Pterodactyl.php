@@ -100,6 +100,14 @@ class PterodactylAPI {
     }
 
     /**
+     * Method to get the users list
+     * @return array Users list
+     */
+    public function getUsersList() {
+        return $this->_callAPI('GET', '/api/application/users');
+    }
+
+    /**
      * Method to get node details
      * @param int $node_id Node ID
      * @return array Node details
