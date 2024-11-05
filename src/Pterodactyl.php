@@ -182,4 +182,169 @@ class PterodactylAPI {
         return $response['content']['meta']['pagination']['total'];
     }
 
+        /**
+     * Find user by email
+     * @param string $email User email
+     * @return array User details
+     */
+    public function findUserByEmail(string $email) {
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception('Invalid email', 400);
+        }
+        $response = $this->_callAPI('GET', '/api/application/users?filter[email]=' . $email);
+        if(empty($response['content']['data']) || $response['content']['data'][0]['attributes']['email'] !== $email) {
+            throw new Exception('User not found', 404);
+        }
+        return $response['content']['data'][0];
+    }
+
+    /**
+     * Create user account
+     * @param string $email User email
+     * @param string $username User username
+     * @param string $first_name User first name
+     * @param string $last_name User last name
+     * @return array User details
+     */
+    public function createUser(string $email, string $username, string $first_name, string $last_name) {
+        foreach ([$email, $username, $first_name, $last_name] as $value) {
+            if (empty($value)) {
+                throw new Exception('All fields are required', 400);
+            }
+        }
+        $data = [
+            'email' => $email,
+            'username' => $username,
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+            'password' => bin2hex(random_bytes(16)),
+        ];
+        if (empty($email)) {
+            throw new Exception('Invalid email', 400);
+        }
+        $response = $this->_callAPI('POST', '/api/application/users', $data);
+        if(!str_contains(json_encode($response['content']), 'uuid')) {
+            if (str_contains(json_encode($response['content']), 'unique')) {
+                if(json_encode($response['content'])['errors'][0]['meta']['source_field'] === 'email') {
+                    return $this->findUserByEmail($email);
+                }
+                if(json_encode($response['content'])['errors'][0]['meta']['source_field'] === 'username') {
+                    $data['username'].= bin2hex(random_bytes(4));
+                }
+            }
+            if (str_contains(json_encode($response['content']), 'required')) {
+                $data['username'] = empty($username) ? preg_replace('/[^a-zA-Z0-9]/', '', $email) : $username;
+                $data['first_name'] = empty($first_name) ? $username : $first_name;
+                $data['last_name'] = empty($last_name) ? $username : $last_name;
+            }
+            if(str_contains(json_encode($response['content']), 'p_username')) {
+                $data['username'] = preg_replace('/[^a-zA-Z0-9]/', '', $username);
+            }
+        $response = $this->_callAPI('POST', '/api/application/users', $data);
+        if(!str_contains(json_encode($response['content']), 'uuid')) {
+            throw new Exception('User creation failed', 500);
+        }
+     
+        }
+
+        return $response;
+    
+    }
+
+
+    /**
+     * Get the first free allocation ID
+     * @param string $fqdn Node FQDN
+     * @return int Allocation ID
+     */
+    public function getFirstFreeAllocationId(string $fqdn) {
+        $node_id = $this->_getNodeId($fqdn);
+        $allocations = $this->_callAPI('GET', '/api/application/nodes/' . $node_id . '/allocations')['content'];
+        if (empty($allocations) || !isset($allocations['data'])) {
+            throw new Exception('No allocations found', 404);
+        }
+        foreach ($allocations['data'] as $allocation) {
+            if(!$allocation['assigned']) {
+                return $allocation['id'];
+            }
+        }
+    }
+
+    /**
+     * Generate server name
+     * @param string $username User username
+     * @return string Server name
+     */
+    private function _generateServerName(string $username) {
+        return $username . '-' . bin2hex(random_bytes(4));
+    }
+
+    /**
+     * Create pterodactyl server
+     * @param string $email User email
+     * @param string $username User username
+     * @param string $first_name User first name
+     * @param string $last_name User last name
+     * @param string $egg_id Egg ID
+     * @param string $docker_image Docker image
+     * @param string $startup Startup command
+     * @param int $memory Memory limit
+     * @param int $swap Swap limit
+     * @param int $disk Disk limit
+     * @param int $io IO limit
+     * @param int $cpu CPU limit
+     * @param int $databases Database limit
+     * @param int $allocations Allocation limit
+     * @param int $backups Backup limit
+     * @param int $node_id Node ID
+     * @return int Server ID
+     */
+     public function createServer(string $email, string $username, string $first_name, string $last_name, string $egg_id, string $docker_image, string $startup, int $memory, int $swap, int $disk, int $io, int $cpu, int $databases, int $allocations, int $backups, int $node_id)
+    {
+        foreach ([$email, $username, $first_name, $last_name, $egg_id, $docker_image, $startup, $memory, $swap, $disk, $io, $cpu, $databases, $allocations, $backups, $node_id] as $value) {
+            if (empty($value)) {
+                throw new Exception('All fields are required', 400);
+            }
+        }
+        $user_id = $this->findUserByEmail($email);
+        if (empty($user_id)) {
+            $user_id = $this->createUser($email, $username, $first_name, $last_name);
+        }
+
+        $serverData = [
+            'json' => [
+                "name" => $this->_generateServerName($username),
+                "user" => $user_id,
+                "egg" => $egg_id,
+                "docker_image" => $docker_image,
+                "startup" => $startup,
+                "limits" => [
+                    "memory" => $memory,
+                    "swap" => $swap,
+                    "disk" => $disk,
+                    "io" => $io,
+                    "cpu" => $cpu,
+                ],
+                "feature_limits" => [
+                    "databases" => $databases,
+                    "allocations" => $allocations,
+                    "backups" => $backups,
+                ],
+                "allocation" => [
+                    //TODO definir quelle node sera utilisée
+                    "default" => $this->getFirstFreeAllocationId($node_id),
+                ],
+            ]
+        ];
+
+        $response = $this->_callAPI('POST', '/api/application/servers', $serverData);
+        if (!str_contains($response['content'], 'uuid')) {
+            throw new Exception('Server creation failed', 500);
+        }
+
+        return $response['content']['id'];
+     }
+       
+
+
 }
