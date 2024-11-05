@@ -219,16 +219,16 @@ class PterodactylAPI {
             'last_name' => $last_name,
             'password' => bin2hex(random_bytes(16)),
         ];
-        if (empty($email)) {
+        if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new Exception('Invalid email', 400);
         }
         $response = $this->_callAPI('POST', '/api/application/users', $data);
         if(!str_contains(json_encode($response['content']), 'uuid')) {
             if (str_contains(json_encode($response['content']), 'unique')) {
-                if(json_encode($response['content'])['errors'][0]['meta']['source_field'] === 'email') {
-                    return $this->findUserByEmail($email);
+                if(($response['content']['errors'][0]['meta']['source_field'] ?? "") === 'email') {
+                    throw new Exception('Email already exists', 409);
                 }
-                if(json_encode($response['content'])['errors'][0]['meta']['source_field'] === 'username') {
+                if(($response['content']['errors'][0]['meta']['source_field'] ?? "") === 'username') {
                     $data['username'].= bin2hex(random_bytes(4));
                 }
             }
