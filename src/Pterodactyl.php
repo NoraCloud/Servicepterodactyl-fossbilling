@@ -64,6 +64,8 @@ class PterodactylAPI {
                 break;
             case 401:
                 throw new Exception('Unauthorized API call: ' . $response, $status);
+            case 403:
+                throw new Exception('Forbidden API call: ' . $response, $status);
             default:
         }
 
